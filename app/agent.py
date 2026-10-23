@@ -133,6 +133,8 @@ def main() -> None:
         print(api_error_message(e.status_code, str(e.body)[:200]))
         raise SystemExit(1)
     print(result.output)
+    usage = result.usage
+    print(f"[トークン] 入力: {usage.request_tokens}, 出力: {usage.response_tokens}")
     if args.trace:
         print_trace(result)
 

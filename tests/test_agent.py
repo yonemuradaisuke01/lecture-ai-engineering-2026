@@ -5,9 +5,12 @@ TestModel は実際のLLMを呼ばない偽モデルで、登録されたツー�
 「ツールが登録され、呼ばれ、結果がモデルに戻るか」を確かめられる。
 """
 
+import sys
+
 from pydantic_ai.messages import ToolCallPart, ToolReturnPart
 from pydantic_ai.models.test import TestModel
 
+import app.agent as app_agent
 from app.agent import agent
 
 BASE_TOOLS = {"search_glossary", "get_lecture_summary"}
@@ -37,3 +40,14 @@ def test_glossary_result_reaches_the_model():
         result = agent.run_sync("RAGとは？")
     returns = _parts(result, ToolReturnPart)
     assert returns and returns[0].tool_name == "search_glossary"
+
+
+def test_main_prints_input_and_output_token_counts(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["app.agent", "RAGとは？"])
+    monkeypatch.setattr(app_agent, "build_model", lambda: TestModel(call_tools=[]))
+
+    app_agent.main()
+
+    output = capsys.readouterr().out
+    assert "[トークン] 入力:" in output
+    assert ", 出力:" in output
